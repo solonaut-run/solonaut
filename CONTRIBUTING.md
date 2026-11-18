@@ -69,11 +69,12 @@ project's license:
 git commit -s -m "core: add the local socket"
 ```
 
-This adds a `Signed-off-by: Your Name <your e-mail>` line. Use any e-mail you are happy to
-publish; GitHub's `ID+login@users.noreply.github.com` address works if you'd rather keep yours
-private. The safety guard checks commit metadata against the e-mail allowlist in
-`.safety-guard.json` (noreply addresses, the project's and the maintainer's own), so if CI
-flags your address, say so in the pull request.
+This adds a `Signed-off-by: Your Name <your e-mail>` line. Any address works for the DCO: use
+one you are happy to publish, or GitHub's `ID+login@users.noreply.github.com` if you'd rather
+keep yours private. The safety guard's e-mail rule skips the addresses in a commit's author,
+committer, `Signed-off-by` and `Co-authored-by` lines; those lines and the rest of the message
+are still checked for secrets, personal paths, IPs and denylisted words. An address anywhere
+else in a commit message or a file must be on the allowlist in `.safety-guard.json`.
 
 ## The safety guard
 

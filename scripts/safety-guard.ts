@@ -3,7 +3,8 @@
 // leaves the machine (pre-push hook) and on every CI run, this blocks:
 //   - secrets (API keys, tokens, private keys)
 //   - personal home paths (/Users/<name>, /home/<name>, C:\Users\<name>)
-//   - e-mail addresses other than noreply / example ones
+//   - e-mail addresses other than allowlisted ones, except a commit's own author, committer
+//     and DCO trailer addresses, which are each contributor's choice
 //   - public IPv4 literals (private and documentation ranges are fine)
 //   - denylisted words: public ones in .safety-guard.json; private ones only in the
 //     git-ignored .safety-guard.local.json or the SAFETY_GUARD_WORDS variable
@@ -82,7 +83,15 @@ function redact(s: string): string {
   return `${s.slice(0, 3)}***${s.slice(-2)}`;
 }
 
-export function scanText(text: string, where: string, rules: Rules): Finding[] {
+/** DCO and co-author trailers: their addresses are a contributor's own choice. */
+export const IDENTITY_TRAILER = /^\s*(?:signed-off-by|co-authored-by):/i;
+
+/**
+ * Scans text line by line. `emailFree` marks lines whose e-mail addresses are a person's chosen
+ * identity (commit author, committer, DCO trailers): the e-mail rule skips them, every other
+ * check (secrets, home paths, IPs, denied and private words) still runs.
+ */
+export function scanText(text: string, where: string, rules: Rules, emailFree: (line: string, index: number) => boolean = () => false): Finding[] {
   if (text.includes("\0")) return []; // binary
   const plain = new Set(rules.words.map((w) => w.toLowerCase()));
   const hashed = new Set(rules.hashedWords.map((h) => h.toLowerCase()));
@@ -95,7 +104,8 @@ export function scanText(text: string, where: string, rules: Rules): Finding[] {
       const m = line.match(re);
       if (m) add(`secret:${rule}`, redact(m[0]));
     }
-    for (const m of line.matchAll(EMAIL)) {
+    const checkEmails = !emailFree(line, i);
+    for (const m of checkEmails ? line.matchAll(EMAIL) : []) {
       if (!rules.allowEmails.some((p) => glob(p, m[0]))) add("email", redact(m[0]));
     }
     for (const m of line.matchAll(HOME)) {
@@ -191,7 +201,10 @@ export function scanHistory(root: string, rules: Rules): Finding[] {
   for (const rec of log.split("\x1e")) {
     const [sha, author, committer, body] = rec.replace(/^\n/, "").split("\0");
     if (!sha) continue;
-    findings.push(...scanText([author, committer, body].join("\n"), `commit ${sha.slice(0, 10)}`, rules));
+    // Contributors sign with any address they like: lines 0 and 1 (author, committer) and the
+    // DCO trailers skip the e-mail rule. Words, paths, IPs and secrets are still checked there.
+    const emailFree = (line: string, i: number) => i < 2 || IDENTITY_TRAILER.test(line);
+    findings.push(...scanText([author, committer, body].join("\n"), `commit ${sha.slice(0, 10)}`, rules, emailFree));
   }
   // Every blob reachable from HEAD, once each (a secret removed later still leaks).
   const objects = git(root, ["rev-list", "--objects", "HEAD"]).toString().split("\n").filter(Boolean);
