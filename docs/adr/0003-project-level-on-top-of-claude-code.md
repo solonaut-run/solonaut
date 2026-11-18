@@ -37,13 +37,33 @@ where it lives and how it reaches a session, so later stages build on one struct
 
 ## Decision
 
-Four principles and two rules.
+Four principles, optional organisation levels, and three rules.
+
+### Organisation levels are optional and progressive
+
+solonaut does not force a way of organising work. Each level is **opt-in**, and each one **adds
+without changing how the lower ones behave**:
+
+- **Level 0, sessions only.** With no setup at all, the person sees their sessions, the inbox
+  and the permission relay. There is no project concept.
+- **Level 1, one repo.** The default when a project is needed. An **implicit project equals the
+  repo**, keyed by the repo identity solonaut already derives from the git remote (or the common
+  git dir when there is no remote), so clones and worktrees of one repo share it. State,
+  decisions and the orchestrator role work here **without registering anything**.
+- **Level 2, a project spanning several repos or folders.** The person opts in by registering
+  the project and its folders.
+- **Level 3, grouping projects**, for example by organisation. Display and grouping only; it is
+  never required and changes nothing about how a project resolves or behaves.
+
+Someone with one project in one repo never sees organisations or multi-repo concepts.
 
 ### 1. Nothing important depends on the folder
 
-solonaut **resolves the project from any working directory** by walking up from the session's
-folder until it reaches a folder registered for a project. Worktrees, clones in other places
-and temporary checkouts resolve the same way, through the repo identity the core already keeps.
+solonaut **resolves the project from any working directory**: it walks up from the session's
+folder to the nearest folder registered for a project (level 2); when there is none, the
+session's repo is its project (level 1); outside any repo and any registered folder there is no
+project (level 0). Worktrees, clones in other places and temporary checkouts resolve the same
+way, through the repo identity the core already keeps.
 
 A session's **role** (orchestrator, worker of mission X, or a plain session) is **declared at
 launch**: by a solonaut launch command the person runs, or by solonaut itself when it starts a
@@ -101,6 +121,18 @@ switches off only the feature that depends on it and says so in a notice; it nev
 session or the core. A **scheduled CI job** runs the adapter's tests against the latest Claude
 Code release, so a format change is found by CI before a person finds it.
 
+### Rule: private project data never reaches a repo
+
+A project's rules, state and decisions are private to the person, and many repos are public.
+
+- They live **only in solonaut's data dir**, never inside any repo folder, worktree or
+  registered project folder.
+- The context injected at session start is wrapped in a **clearly labelled block**: private
+  project context, for this session only, never to be copied into commits, pull requests,
+  issues or comments.
+- A repo's own safety checks (such as this repo's safety guard) remain the **backstop**: the
+  label lowers the risk, the guard catches what slips through.
+
 ### Rule: change by evidence
 
 The structure is **used for real work before it is changed**. Friction is logged as it
@@ -109,9 +141,16 @@ A change to this structure goes through **a new ADR that supersedes this one**.
 
 ## Consequences
 
-- The **core gains project records**: a project, its registered folders, and a context store
-  with rules, state and decisions as Markdown under solonaut's data dir. Repo identity (worktrees
-  and clones resolving to one repo) is a prerequisite.
+- The **core gains project records**: implicit repo projects (level 1), registered projects with
+  their folders (level 2), optional groups (level 3), and a context store with rules, state and
+  decisions as Markdown under solonaut's data dir. Repo identity (worktrees and clones resolving
+  to one repo) is a prerequisite, and it is what makes level 1 work with no setup.
+- **Every level is tested on its own.** Level 0 behaves the same with or without a project
+  store; level 1 needs no registration; level 3 changes only grouping and display.
+- **Private by placement and by label.** The store refuses paths inside any repo or registered
+  folder, the injected block carries the "private, this session only, never copy into commits,
+  pull requests, issues or comments" label, and the safety guard stays the backstop. A model can
+  still quote what it was given, so the label and the guard are both needed.
 - The **plugin's `SessionStart` hook** injects the project context and the session's role as
   `additionalContext`, labelled as solonaut's. It has a short timeout and injects nothing when
   the core does not answer.
@@ -138,6 +177,11 @@ A change to this structure goes through **a new ADR that supersedes this one**.
   change with the folder a session happens to start in, not with the project.
 - **Handoff files in the repo or the project folder.** Rejected: nothing guarantees a session
   loads them, they go stale, and they put project state into repo history.
+- **Requiring every project to be registered**, or organising projects by organisation from
+  the start. Rejected: it forces one way of working on everyone; the simplest case (one repo)
+  must work with no setup.
+- **Keeping project state in a git-ignored file inside the repo.** Rejected: one mistaken
+  `git add -f` or a copied folder publishes it, and it is still folder-bound.
 - **Inferring the role from the folder** (the project folder means orchestrator, a repo means
   worker). Rejected: the folder says what code is edited, not what the session is for.
 - **Writing project context into the repo's `CLAUDE.md`** (a tagged block). Rejected: it leaks
