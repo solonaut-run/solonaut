@@ -1,0 +1,5 @@
+# LF everywhere, so the safety guard, the hooks and the tests behave the same on Windows.
+* text=auto eol=lf
+*.png binary
+*.ico binary
+*.icns binary

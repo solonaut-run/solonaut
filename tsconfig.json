@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "Preserve",
+    "moduleResolution": "bundler",
+    "lib": ["ESNext"],
+    "types": ["bun"],
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noEmit": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "verbatimModuleSyntax": true
+  },
+  "include": ["core/**/*.ts", "contract/**/*.ts", "plugin/**/*.ts", "platforms/**/*.ts", "sdk/**/*.ts", "scripts/**/*.ts"],
+  "exclude": ["node_modules", "dist", "app"]
+}

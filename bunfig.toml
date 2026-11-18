@@ -1,0 +1,3 @@
+[test]
+# The desktop app will have its own tests and dependencies.
+pathIgnorePatterns = ["app/**"]

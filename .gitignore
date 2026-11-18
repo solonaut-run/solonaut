@@ -1,0 +1,9 @@
+node_modules/
+dist/
+coverage/
+*.log
+.DS_Store
+.env
+.env.*
+# Local, never committed: private additions to the safety guard denylist.
+.safety-guard.local.json

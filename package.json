@@ -1,0 +1,18 @@
+{
+  "name": "solonaut-monorepo",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "safety": "bun scripts/safety-guard.ts",
+    "safety:history": "bun scripts/safety-guard.ts --history",
+    "typecheck": "tsc --noEmit -p .",
+    "test": "bun test --timeout 30000",
+    "check": "bun run safety && bun run typecheck && bun run test",
+    "setup": "bun scripts/install-hooks.ts"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.4.4",
+    "typescript": "^7.0.2"
+  }
+}
