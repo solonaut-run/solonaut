@@ -28,6 +28,9 @@ Nothing leaves your machine unless you configure it. There is no telemetry.
 - [Vision](docs/vision.md): what solonaut is for, and the principles it keeps.
 - [Architecture](docs/architecture.md): the core service, the protocol, the clients and the adapters.
 - [Roadmap](ROADMAP.md): the stages, in order, and when each one is done.
+- [Project workflow](docs/guides/project-workflow.md): how to organise work with solonaut, from
+  one repo to a project across several, and [adopting an existing
+  project](docs/guides/adopting-a-project.md).
 
 ## Repo layout
 
@@ -39,7 +42,7 @@ Nothing leaves your machine unless you configure it. There is no telemetry.
 | [`app/`](app/) | The desktop app (Tauri + React): the control tower |
 | [`platforms/herdr/`](platforms/herdr/) | The first platform adapter and its mods, for Herdr |
 | [`sdk/`](sdk/) | Client libraries for adapters that live in their own repos |
-| [`docs/`](docs/) | Vision, architecture and decision records |
+| [`docs/`](docs/) | Vision, architecture, decision records and guides |
 | [`scripts/`](scripts/) | Repo tooling, including the safety guard |
 
 ## Contributing

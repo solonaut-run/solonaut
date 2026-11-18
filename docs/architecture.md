@@ -158,6 +158,34 @@ The Claude Code plugin is the same in every terminal and on every machine:
 
 The plugin reports and asks; **the core decides**.
 
+## Projects: the level above the repo
+
+Decided in [ADR 0003](adr/0003-project-level-on-top-of-claude-code.md). The repo level (a
+repo's `CLAUDE.md`, `AGENTS.md`, `.claude/skills`) belongs to Claude Code and the repo; the
+project level belongs to solonaut and is never built from repo-level files.
+
+- **Optional levels.** Level 0: sessions only, no project. Level 1 (the default): an implicit
+  project per repo, keyed by the repo identity, with no registration. Level 2: a registered
+  project spanning several repos or folders. Level 3: grouping projects, display only. Each
+  level adds without changing the lower ones.
+- **Project resolution.** The core walks up from a session's working directory to the nearest
+  registered folder; failing that, the session's repo is its project; failing that, there is
+  none. Worktrees and other checkouts resolve the same way through the repo identity.
+- **Context store.** Each project has rules, state and decisions as plain Markdown, **only**
+  under solonaut's data dir and never inside a repo, readable and `@import`-able without
+  solonaut. What is injected is labelled private, for this session only, never to be copied
+  into commits, pull requests, issues or comments; the safety guard is the backstop.
+- **Injection.** The plugin's `SessionStart` hook adds the project context and the session's
+  role as `additionalContext`, labelled as solonaut's. It fails open: no answer in time, no
+  context, a plain session. The repo wins on conflict.
+- **Roles at launch.** The orchestrator is started with a solonaut launch command; workers are
+  started by solonaut with their mission. The role is never inferred from the folder.
+- **Skill packs.** A project's cross-repo skills are a small plugin in solonaut's data dir,
+  loaded per session with Claude Code's documented `--plugin-dir` flag.
+- **Documented extension points only.** Anything that reads Claude Code internals (transcripts,
+  session files) lives in the Claude agent adapter, degrades with a notice when a format
+  changes, and is tested on a schedule against the latest Claude Code release.
+
 ## First run: value without configuration
 
 Before anything is installed, the core can read the existing Claude Code config dirs and their

@@ -28,6 +28,12 @@ all three OSes.
 
 The Claude Code plugin as the sensor and actuator in every session.
 
+- First, the minimal workflow kernel from
+  [ADR 0003](docs/adr/0003-project-level-on-top-of-claude-code.md): project resolution from
+  any folder, a per-project context store, `SessionStart` injection of the project context and
+  the session's role, roles declared at launch, orchestrator commands for state and decisions,
+  per-project skill packs, and the Claude agent adapter with a scheduled test against the latest
+  Claude Code.
 - Session events from hooks, with repo, branch, machine and terminal hints.
 - The permission relay, with Claude Code's own prompt as the fallback, and the gate guard.
 - MCP tools for agents: ask a decision, report a finding, update the session summary.
@@ -38,7 +44,8 @@ From the workshop: the session registry, the inbox and its item kinds, the permi
 the gate guard, message delivery and the session summary.
 
 **Done when:** with the plugin installed, every new session in any terminal appears in
-`solonaut sessions`; a permission prompt can be answered from `solonaut inbox answer` or in the
+`solonaut sessions`; a session started in any folder of a registered project gets that
+project's context and its declared role; a permission prompt can be answered from `solonaut inbox answer` or in the
 terminal, whichever comes first; a gate is refused for an agent session; with the core stopped,
 sessions behave exactly as without solonaut.
 
