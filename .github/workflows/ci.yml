@@ -1,0 +1,50 @@
+name: ci
+
+# Runs on every pull request to main and on main itself, on the three OSes solonaut supports.
+# The same checks run locally with `bun run check`.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    strategy:
+      fail-fast: false
+      matrix:
+        # Pinned: the -latest labels move to new images without notice.
+        os: [ubuntu-24.04, macos-15, windows-2025]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0 # the safety guard scans the whole history
+          # On a pull request, check the PR's own head, not GitHub's test-merge commit: that
+          # synthetic commit carries the opener's account e-mail.
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: .bun-version
+      - name: Cache Bun's install cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: bun-${{ runner.os }}-${{ hashFiles('bun.lock', '.bun-version') }}
+          restore-keys: bun-${{ runner.os }}-
+      - run: bun install --frozen-lockfile
+      - name: Safety guard (working tree + history)
+        # Private words, if the maintainers set this secret, are matched but never printed.
+        env:
+          SAFETY_GUARD_WORDS: ${{ secrets.SAFETY_GUARD_WORDS }}
+        run: bun scripts/safety-guard.ts --history
+      - run: bun run typecheck
+      - run: bun run test
