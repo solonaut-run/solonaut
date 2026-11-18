@@ -1,0 +1,35 @@
+name: Bug
+description: Something does not work as documented
+labels: ["type:bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Security problem? Do not open an issue: see SECURITY.md.
+        This repo is public: remove secrets, tokens, personal paths and transcript content from anything you paste.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      value: |
+        1.
+    validations:
+      required: true
+  - type: textarea
+    id: env
+    attributes:
+      label: Environment
+      description: Output of `solonaut version --json` and `solonaut doctor --json` (when available), OS, Claude Code version, and the terminal or platform you use.
+      render: shell

@@ -1,0 +1,46 @@
+name: Feature
+description: Propose a new capability or a change in behaviour
+labels: ["type:feature"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Keep it small: one issue, one short branch, one pull request. Bigger ideas start as a Discussion or an epic.
+        This repo is public: no secrets, personal paths or private code in the text.
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: The problem, and who has it. What happens today?
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope
+      description: What this issue changes, as a short list.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: Testable checks. Each one should become a test or a checkable step.
+      value: |
+        - [ ]
+    validations:
+      required: true
+  - type: textarea
+    id: out
+    attributes:
+      label: Out of scope
+  - type: input
+    id: deps
+    attributes:
+      label: Dependencies
+      description: "e.g. Blocked by #12"
+  - type: textarea
+    id: contract
+    attributes:
+      label: Contract
+      description: Does it add or change a schema or an event in contract/? Breaking changes need an ADR.
