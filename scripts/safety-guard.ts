@@ -13,7 +13,7 @@
 // Usage: bun scripts/safety-guard.ts [--history] [--root DIR]
 // Findings are printed redacted (CI logs are public too). Exit 1 if any.
 import { createHash } from "node:crypto";
-import { existsSync, readFileSync, realpathSync } from "node:fs";
+import { existsSync, readFileSync, realpathSync, statSync } from "node:fs";
 import { dirname, join } from "node:path";
 
 export interface Rules {
@@ -118,6 +118,12 @@ export function scanText(text: string, where: string, rules: Rules): Finding[] {
 }
 
 /** Where a private .safety-guard.local.json may live: the checkout, then the main clone of a worktree. */
+function fileKey(p: string): string {
+  if (!existsSync(p)) return p;
+  const st = statSync(p, { bigint: true });
+  return st.ino ? `${st.dev}:${st.ino}` : realpathSync(p).toLowerCase();
+}
+
 export function localRulePaths(root: string): string[] {
   const paths = [join(root, ".safety-guard.local.json")];
   const r = Bun.spawnSync(["git", "-C", root, "rev-parse", "--path-format=absolute", "--git-common-dir"], { stdout: "pipe", stderr: "pipe" });
@@ -125,10 +131,12 @@ export function localRulePaths(root: string): string[] {
     const common = r.stdout.toString().trim();
     if (common.endsWith("/.git")) paths.push(join(dirname(common), ".safety-guard.local.json"));
   }
-  // Same file reached through a symlinked path (e.g. /var vs /private/var) counts once.
+  // The same file reached through another spelling of its path counts once: a symlink
+  // (/var vs /private/var) or, on Windows, a short 8.3 name (RUNNER~1) that realpath keeps.
+  // The file's identity (device + inode) catches both; the path is only a fallback.
   const seen = new Set<string>();
   return paths.filter((p) => {
-    const key = existsSync(p) ? realpathSync(p) : p;
+    const key = fileKey(p);
     if (seen.has(key)) return false;
     seen.add(key);
     return true;
