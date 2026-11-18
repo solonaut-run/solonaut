@@ -57,3 +57,5 @@ bun run check     # safety guard + typecheck + tests
 ## License
 
 [MIT](LICENSE).
+
+solonaut is an independent project, not affiliated with or endorsed by Anthropic. Claude and Claude Code are trademarks of Anthropic, PBC.
