@@ -1,0 +1,17 @@
+{
+  "$comment": "Rules for scripts/safety-guard.ts. This repo is public: the guard blocks secrets, personal home paths, real e-mail addresses, public IPv4 literals and denylisted words, in files and in commit metadata. Only public rules live here. Private words go in .safety-guard.local.json (git-ignored, read from the checkout and from the main clone of a worktree, as 'words' or sha256 'hashedWords') or in the comma-separated SAFETY_GUARD_WORDS variable, never in this file. Private words are only ever reported as '(private word)'. Silence one line with the marker 'safety-guard: allow' and say why next to it.",
+  "words": [],
+  "allowEmails": [
+    "hello@solonaut.run",
+    "*@users.noreply.github.com",
+    "noreply@*",
+    "no-reply@*",
+    "*@example.com",
+    "*@example.org",
+    "*@example.net"
+  ],
+  "allowEmailsReason": "The project's contact address is public on purpose.",
+  "allowHomeNames": ["runner", "runneradmin", "user", "username", "you", "example", "shared"],
+  "allowIps": [],
+  "skip": [".safety-guard.json", "bun.lock"]
+}

@@ -1,0 +1,5 @@
+#!/bin/sh
+# Blocks a push that would publish secrets, personal paths or e-mails, public IPs or
+# denylisted words (.safety-guard.json plus your private .safety-guard.local.json).
+# Installed by: bun run setup
+exec bun scripts/safety-guard.ts --history
