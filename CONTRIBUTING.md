@@ -69,9 +69,11 @@ project's license:
 git commit -s -m "core: add the local socket"
 ```
 
-This adds a `Signed-off-by: Your Name <your e-mail>` line. Use an e-mail you are happy to
-publish; GitHub's `ID+login@users.noreply.github.com` address works, and the safety guard only
-accepts noreply addresses in commit metadata.
+This adds a `Signed-off-by: Your Name <your e-mail>` line. Use any e-mail you are happy to
+publish; GitHub's `ID+login@users.noreply.github.com` address works if you'd rather keep yours
+private. The safety guard checks commit metadata against the e-mail allowlist in
+`.safety-guard.json` (noreply addresses, the project's and the maintainer's own), so if CI
+flags your address, say so in the pull request.
 
 ## The safety guard
 

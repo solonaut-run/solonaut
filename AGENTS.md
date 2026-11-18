@@ -64,8 +64,8 @@ variable, never in a tracked file.
 - Keep `bun run check` green locally, then open a pull request to `main` that says `Closes #<n>`.
   CI runs the same checks on Ubuntu, macOS and Windows.
 - One issue per pull request. Commits: `area: what changed`, imperative, signed off with
-  `git commit -s` using a noreply e-mail. No co-author trailers for tools, no "generated with"
-  lines.
+  `git commit -s` using the identity the checkout is configured with (the maintainer's own
+  public address). No co-author trailers for tools, no "generated with" lines.
 - A human maintainer reviews and merges. **Agents never merge, never push to `main`, never
   force-push a shared branch, never release and never change repo settings.**
 
