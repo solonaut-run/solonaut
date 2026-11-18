@@ -11,9 +11,10 @@ How the pieces of solonaut fit together. Read the [vision](vision.md) first for 
 ```
                          ┌──────────────────────── clients ────────────────────────┐
                          │                                                         │
-                         │  desktop app      solonaut CLI     platform mods        │
-                         │  (control tower)  (setup, status)  (Herdr first)        │
-                         │                                    mobile (later)       │
+                         │  desktop app       solonaut CLI     platform mods       │
+                         │  control tower,    setup, status    Herdr first         │
+                         │  Houston,                           mobile (later)      │
+                         │  Ground Control                                         │
                          └──────────────────────────┬──────────────────────────────┘
                                                     │  protocol (contract/)
                                                     │  requests · responses · events
@@ -43,6 +44,20 @@ How the pieces of solonaut fit together. Read the [vision](vision.md) first for 
 | **app** | `app/` | The desktop app (Tauri + React): the control tower and the setup flow. |
 | **platforms** | `platforms/<name>/` | Optional adapters and mods for terminal apps. Herdr first. |
 | **sdk** | `sdk/` | Client libraries and adapter interfaces, for this repo and for third-party adapters. |
+
+## Surfaces and names
+
+The views are clients of the core and are named for what they show: **Inbox**, **Sessions**,
+**Missions**, **Memory**, **Automations**, **Changes**, **Files**, **GitHub**. Two have proper
+names:
+
+- **Houston**: the status chip (how much waits on you, and how urgent), the toasts, the
+  notification policy, and later the voice. Houston only reads state and sends the same requests
+  as any other client; when it speaks, it says what a tool result says, never more.
+- **Ground Control**: a dashboard the person builds from widgets. Each view declares the widgets
+  it can draw (name, sizes, scope); Ground Control arranges them and never draws another view's
+  data itself. The same widget can appear in the app and, where a platform allows, in a platform
+  mod.
 
 **Platforms, the app, the CLI and the plugin talk to the core only through `contract/`.** None
 of them reads the core's files or imports its code at run time. That is what lets each piece ship
@@ -214,7 +229,7 @@ encrypted bytes. Nothing in this repo will depend on it.
 ## Safety in code
 
 - **Gates** (merge or push to a default branch, release, deploy) are refused for agent sessions by
-  the gate guard, and are never offered as something an inbox, a voice command or a model can
+  the gate guard, and are never offered as something an inbox, Houston's voice or a model can
   allow.
 - **The model proposes, code enforces.** Every action from a model or a client is a request the
   core validates against the current `rev` and the policy. Retries are idempotent by request id.

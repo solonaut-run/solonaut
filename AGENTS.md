@@ -25,6 +25,10 @@ variable, never in a tracked file.
 - The project, the CLI and the toolkit are **solonaut**, always lower case.
 - The folders are the names: **core**, **contract**, **plugin**, **app**, **platforms**,
   **sdk**. A platform adapter is named after its platform (`platforms/herdr`).
+- Two pieces have proper names: **Houston** (the status chip, the toasts and the voice) and
+  **Ground Control** (the dashboard the person builds from other views' widgets). Every other
+  view keeps a plain descriptive name: Inbox, Sessions, Missions, Memory, Automations, Changes,
+  Files, GitHub. Never say "Ground" on its own.
 - Say "for Herdr" or "works with Herdr"; never put "Herdr", "Claude" or another product's name
   in a solonaut product name or logo.
 - Names from earlier prototypes are never used here. The safety guard knows the retired ones.

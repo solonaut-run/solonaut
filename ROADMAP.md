@@ -48,15 +48,28 @@ The first platform adapter and its mods, polished enough to replace the maintain
 setup day to day.
 
 - The adapter: focus a session's pane, open a visible session in a folder.
-- Mods: the inbox and the sessions list, as clients of the core.
+- Mods, as clients of the core: Sessions, Inbox, Missions, Changes, Files, GitHub and the
+  Houston chip.
 - The installer: a plan, add-only tagged blocks, a backup, a confirmation, a byte-for-byte
   removal.
 
-From the workshop: the inbox, sessions and notification mods and the Herdr installer.
+From the workshop: the inbox, sessions, missions, changes, files, GitHub and Houston mods, and
+the Herdr installer. Missions here are the views over the mission engine the workshop already
+has; stage 5 makes missions a first-class flow in the app.
 
 **Done when:** the maintainer runs a full working week on the Herdr mods alone, without
 falling back to the previous setup; installing and removing them leaves a Herdr home byte for
-byte as it was.
+byte as it was. Each of these is at least on par with the previous setup:
+
+- [ ] **Sessions** sidebar: every session grouped by repo or project, its state, and focus on
+  select.
+- [ ] **Inbox** with the permission relay: permissions, decisions and findings answered from the
+  inbox, with Claude Code's own prompt as the fallback.
+- [ ] **Missions**: see and follow missions and their workers, start a task.
+- [ ] **Changes**: what a session changed, ready to read.
+- [ ] **Files**: the files and links a session touched or flagged for review.
+- [ ] **GitHub**: the issues and pull requests of the session's repo.
+- [ ] **Houston** chip: how much waits on you, toasts by the notification policy.
 
 ## 4. App: control tower, setup and first release
 
@@ -64,6 +77,8 @@ The desktop app as the place to see and steer everything, and the first public r
 
 - The app (Tauri + React): sessions on every machine, the inbox, costs, settings. No terminals
   of its own.
+- Houston in the app: the tray chip and the toasts, working with every platform closed.
+- Ground Control: the dashboard built from widgets, in the app and in Herdr.
 - First-run value: what your agents did and cost, read-only, before any setup.
 - The setup flow: one reviewable plan, applied with one press, a journal, undo. `solonaut setup
   [--yes]` for headless use and for agents.
@@ -78,7 +93,7 @@ reviews the plan, applies it and answers their first permission prompt from the 
 the setup leaves no trace; the same works headless with the install script and
 `solonaut setup --yes`; 0.1 is published.
 
-## 5. Missions and workers, review, memory, voice
+## 5. Missions and workers, review, memory, Houston's voice
 
 Handing work to agents, and getting it back in a shape you can trust.
 
@@ -86,8 +101,8 @@ Handing work to agents, and getting it back in a shape you can trust.
   in tokens and quota, results sent back.
 - Review: what a worker changed, ready to read, with the gates kept for you.
 - Memory: what agents learned about a repo, proposed by agents and approved by you.
-- Voice: hear what needs you and answer by voice, with dangerous actions never approved by
-  voice.
+- Houston's voice: hear what needs you and answer by voice, with dangerous actions never
+  approved by voice.
 
 From the workshop: tasks and missions, automations, per-repo memory and checkpoints, Claude
 Code profiles, and the voice design.

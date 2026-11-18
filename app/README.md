@@ -5,6 +5,8 @@ The **desktop app**: solonaut's control tower, for macOS, Windows and Linux (Tau
 What will live here:
 
 - the window that shows every session on every machine, the inbox, costs and settings;
+- Houston in the tray: the status chip, the toasts and, later, the voice;
+- Ground Control: the dashboard the person builds from the other views' widgets;
 - the setup flow: one reviewable plan, applied with one press, every step undoable;
 - signed and notarized packaging.
 

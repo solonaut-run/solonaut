@@ -22,7 +22,7 @@ context, scope, acceptance criteria, what is out of scope and what blocks it.
 Big ideas start as a [Discussion](https://github.com/solonaut-run/solonaut/discussions) or an
 issue labelled `type:epic`, and are split into issues when their stage starts.
 
-## Ground rules
+## Rules
 
 - **English** for code, comments, docs, commits and issues.
 - **Tests with every change.** `bun run check` must stay green.
@@ -49,6 +49,12 @@ bun run check        # safety guard + typecheck + tests
 | `bun run safety` | Safety guard over the working tree |
 | `bun run safety:history` | Safety guard over the working tree and the whole history |
 | `bun run setup -- --uninstall` | Removes the pre-push hook |
+
+## Code from the private workshop
+
+solonaut was first prototyped in the maintainer's private workshop repository. Code migrated
+from there into this repo is relicensed under the MIT license by its sole author, the
+maintainer, and is checked for privacy before it lands.
 
 ## Developer Certificate of Origin (DCO)
 

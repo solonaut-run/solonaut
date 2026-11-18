@@ -55,6 +55,14 @@ without SSH. It is not a promise, and nothing in this repo will ever depend on i
   session you are already looking at.
 - **Platform mods and adapters** bring solonaut into the tools you already use.
 
+Two pieces have proper names; everything else is called what it is (Inbox, Sessions, Missions,
+Memory, Automations, Changes, Files, GitHub, …):
+
+- **Houston** is the voice of solonaut: the status chip that says how much waits on you, the
+  toasts when something needs you, and later the voice you can listen and answer to.
+- **Ground Control** is the dashboard you build yourself from the widgets the other pieces
+  provide: the inbox, sessions, missions, costs, whatever you want on one screen.
+
 ### Platforms are optional adapters
 
 A platform adapter has a minimal interface:
@@ -109,6 +117,8 @@ in the app, in the terminal and as JSON.
 - **Secrets in the OS keychain**, never in config files or logs.
 - **Nothing typed into terminals.** Answers travel as messages through Claude Code, never as
   simulated keystrokes.
+- **Never by voice alone.** Houston can read out and take answers, but dangerous actions are not
+  approved by voice and gates never are.
 
 ## Scope
 
