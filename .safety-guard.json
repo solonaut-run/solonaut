@@ -3,6 +3,7 @@
   "words": [],
   "allowEmails": [
     "hello@solonaut.run",
+    "boudydegeer@mosaiqo.com",
     "*@users.noreply.github.com",
     "noreply@*",
     "no-reply@*",
@@ -10,7 +11,7 @@
     "*@example.org",
     "*@example.net"
   ],
-  "allowEmailsReason": "The project's contact address is public on purpose.",
+  "allowEmailsReason": "The project's contact address and the maintainer's public commit address are public on purpose. Only these exact addresses pass; their words still count anywhere else.",
   "allowHomeNames": ["runner", "runneradmin", "user", "username", "you", "example", "shared"],
   "allowIps": [],
   "skip": [".safety-guard.json", "bun.lock"]

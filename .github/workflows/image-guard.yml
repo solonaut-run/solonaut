@@ -1,0 +1,77 @@
+name: image-guard
+
+# Reads the text in images with OCR and runs the safety guard's text scanner over it, so a
+# screenshot can't leak a home path, an e-mail or a private word. Ubuntu only. Pull requests
+# and pushes read only the images they add or change; run it by hand to read every image in
+# the history. See scripts/image-guard.ts. Findings name the file and the type only.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      history:
+        description: Read every image in the history, not only the last change
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: image-guard-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  images:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          # The PR's own head, as in ci.yml. Its images are only read as data, never run.
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: .bun-version
+      - name: Pick the images to read
+        id: pick
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          HISTORY: ${{ inputs.history }}
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          PUSH_BEFORE: ${{ github.event.before }}
+        run: |
+          head=$(git rev-parse HEAD)
+          if [ "$EVENT_NAME" = "workflow_dispatch" ] && [ "$HISTORY" = "true" ]; then
+            echo "args=--history" >> "$GITHUB_OUTPUT"
+            echo "any=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if [ "$EVENT_NAME" = "pull_request" ]; then base=$(git merge-base "$PR_BASE" "$head")
+          elif [ -n "$PUSH_BEFORE" ] && [ "$PUSH_BEFORE" != "0000000000000000000000000000000000000000" ]; then base=$PUSH_BEFORE
+          else base=$(git rev-parse "$head^" 2>/dev/null || git hash-object -t tree /dev/null)
+          fi
+          echo "args=--changed $base $head" >> "$GITHUB_OUTPUT"
+          if git diff --name-only --no-renames --diff-filter=AM "$base" "$head" | grep -qiE '\.(png|jpe?g|gif|webp|svg)$'; then
+            echo "any=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "No images changed."
+          fi
+      - name: Install tesseract
+        if: steps.pick.outputs.any == 'true'
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq --no-install-recommends tesseract-ocr tesseract-ocr-eng imagemagick >/dev/null
+      - name: Read the images
+        if: steps.pick.outputs.any == 'true'
+        env:
+          SAFETY_GUARD_WORDS: ${{ secrets.SAFETY_GUARD_WORDS }}
+          ARGS: ${{ steps.pick.outputs.args }}
+        # ARGS is split on purpose: a mode flag and its commits.
+        run: |
+          # shellcheck disable=SC2086
+          bun scripts/image-guard.ts $ARGS

@@ -141,6 +141,24 @@ describe("git scans", () => {
     const found = scanHistory(dir, rules).map((f) => f.rule).sort();
     expect(found).toEqual(["denied-word", "email", "email"]);
   });
+
+  test("history: an allowed address passes in author, committer and sign-off; its private word elsewhere does not", () => {
+    const own = j("me", at, "hushword.com");
+    const ownRules = { ...rules, allowEmails: [...rules.allowEmails, own] };
+    const { dir, g } = repo();
+    g("config", "user.email", own);
+    writeFileSync(join(dir, "a.md"), `Contact: ${own}\n`);
+    g("add", ".");
+    g("commit", "-q", "-m", `first\n\nSigned-off-by: Me <${own}>`);
+    expect(scanHistory(dir, ownRules)).toEqual([]);
+    expect(scanWorkingTree(dir, ownRules)).toEqual([]);
+
+    writeFileSync(join(dir, "b.md"), `see hushword.com and ${j("other", at, "hushword.com")}\n`);
+    g("add", ".");
+    g("commit", "-q", "-m", "second: the hushword team");
+    const found = scanHistory(dir, ownRules).map((f) => `${f.where.split(" ")[0]} ${f.rule}`).sort();
+    expect(found).toEqual(["b.md denied-word", "b.md email", "commit denied-word"]);
+  });
 });
 
 describe("loadRules", () => {
