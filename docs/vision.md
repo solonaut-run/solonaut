@@ -33,6 +33,22 @@ We do not model each terminal's own panes, remotes or agent features. A remote m
 another machine running Claude Code plus the plugin. This keeps solonaut working in places we
 never wrote an integration for.
 
+### The project level on top of Claude Code
+
+Claude Code owns the **repo level**: a repo's `CLAUDE.md`, `AGENTS.md` and skills, which work for
+anyone. solonaut owns the **project level** that Claude Code does not have: several repos, one
+orchestrator, live state, decisions and handoffs between sessions. In short
+([ADR 0003](adr/0003-project-level-on-top-of-claude-code.md)):
+
+- **Nothing important depends on the folder.** The project is resolved from any working
+  directory, and a session's role is declared at launch, never guessed from where it started.
+- **solonaut adds, never replaces.** Vanilla Claude Code is the floor: a repo stays
+  self-sufficient, the repo wins on conflict, and if solonaut is down the session starts as plain
+  Claude Code.
+- **Skills live where their scope is**: repo skills in the repo, project skills in a per-project
+  pack loaded at launch, personal skills in the person's own marketplace.
+- **Only documented extension points**, and the structure changes by evidence from real use.
+
 ### The core is a local service with an event protocol
 
 Instead of a CLI spawned for every hook, the core runs as a small **local service** that owns all
