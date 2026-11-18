@@ -129,17 +129,60 @@ describe("git scans", () => {
     expect(scanWorkingTree(dir, rules).map((f) => f.where)).toEqual(["a.md"]);
   });
 
-  test("history: a word removed later and a bad author e-mail are both found", () => {
+  test("history: a word removed later is found", () => {
     const { dir, g } = repo();
     writeFileSync(join(dir, "a.md"), "hushword\n");
     g("add", ".");
     g("commit", "-q", "-m", "first");
     writeFileSync(join(dir, "a.md"), "clean\n");
     g("add", ".");
-    g("-c", `user.email=${j("dev", at, "company.io")}`, "commit", "-q", "-m", "second");
+    g("commit", "-q", "-m", "second");
     expect(scanWorkingTree(dir, rules)).toEqual([]);
-    const found = scanHistory(dir, rules).map((f) => f.rule).sort();
-    expect(found).toEqual(["denied-word", "email", "email"]);
+    expect(scanHistory(dir, rules).map((f) => f.rule)).toEqual(["denied-word"]);
+  });
+
+  test("history: a contributor's own address passes as author, committer and in DCO trailers", () => {
+    const mine = j("dev", at, "company.io");
+    const { dir, g } = repo();
+    g("config", "user.email", mine);
+    writeFileSync(join(dir, "a.md"), "clean\n");
+    g("add", ".");
+    g("commit", "-q", "-m", `core: a change\n\nSigned-off-by: Dev <${mine}>\nCo-authored-by: Pal <${j("pal", at, "other.io")}>`);
+    expect(scanHistory(dir, rules)).toEqual([]);
+  });
+
+  test("history: the same address in a file or in free message text is still caught", () => {
+    const mine = j("dev", at, "company.io");
+    const { dir, g } = repo();
+    g("config", "user.email", mine);
+    writeFileSync(join(dir, "a.md"), `write to ${mine}\n`);
+    g("add", ".");
+    g("commit", "-q", "-m", `core: a change\n\nAsk ${mine} about it.\n\nSigned-off-by: Dev <${mine}>`);
+    const found = scanHistory(dir, rules).map((f) => `${f.where.split(" ")[0]}:${f.line} ${f.rule}`).sort();
+    // Line 5 of the commit record is "Ask ... about it." (author, committer, subject, blank, text).
+    expect(found).toEqual(["a.md:1 email", "commit:5 email"]);
+  });
+
+  test("history: a private word in an author name or address, or other leaks on identity lines, are still caught", () => {
+    const { dir, g } = repo();
+    writeFileSync(join(dir, "a.md"), "clean\n");
+    g("add", ".");
+    g("-c", "user.name=Hushword Dev", "commit", "-q", "-m", "one");
+    writeFileSync(join(dir, "a.md"), "clean 2\n");
+    g("add", ".");
+    g("-c", `user.email=${j("dev", at, "hushword.io")}`, "commit", "-q", "-m", "two");
+    writeFileSync(join(dir, "a.md"), "clean 3\n");
+    g("add", ".");
+    g("commit", "-q", "-m", `three\n\nSigned-off-by: Dev ${j("/Us", "ers/", "somebody")} <${j("dev", at, "x.io")}>`);
+    // -c user.* sets both author and committer, so each identity commit is flagged on lines 1 and 2.
+    const found = [...new Set(scanHistory(dir, rules).map((f) => `${f.line} ${f.rule}`))].sort();
+    expect(found).toEqual(["1 denied-word", "2 denied-word", "5 home-path"]);
+    expect(new Set(scanHistory(dir, rules).map((f) => f.where)).size).toBe(3);
+  });
+
+  test("scanText: the e-mail rule skips only the lines marked as identity", () => {
+    const text = [j("a", at, "x.io"), j("b", at, "y.io")].join("\n");
+    expect(scanText(text, "f", rules, (_, i) => i === 0).map((f) => f.line)).toEqual([2]);
   });
 
   test("history: an allowed address passes in author, committer and sign-off; its private word elsewhere does not", () => {
