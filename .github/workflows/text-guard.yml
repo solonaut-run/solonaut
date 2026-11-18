@@ -1,0 +1,109 @@
+name: text-guard
+
+# Scans what people write on GitHub (issue, pull request and discussion titles and bodies,
+# comments, reviews) with the safety guard's text scanner. A finding fails the run. Text by the
+# maintainers or a bot is also taken down; text by anyone else is never changed.
+# See scripts/text-guard.ts. The log is public and names only finding types and URLs.
+#
+# No job here runs code from a pull request: each one checks out the default branch only and
+# reads the text from the event payload. Pull request events from a fork have no secrets and a
+# read-only token, so they only record the item's ids; text-guard-relay re-fetches and judges it.
+on:
+  issues:
+    types: [opened, edited]
+  issue_comment:
+    types: [created, edited]
+  pull_request:
+    types: [opened, edited, reopened]
+  pull_request_review:
+    types: [submitted, edited]
+  pull_request_review_comment:
+    types: [created, edited]
+  discussion:
+    types: [created, edited]
+  discussion_comment:
+    types: [created, edited]
+
+permissions: {}
+
+jobs:
+  issues:
+    if: github.event_name == 'issues' || github.event_name == 'issue_comment'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: write # replace an issue body, delete an issue comment
+      pull-requests: write # delete a comment on a pull request's conversation
+    steps: &scan
+      - uses: actions/checkout@v5
+        with:
+          # The default branch, never the pull request's code.
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+          sparse-checkout: |
+            scripts
+            .safety-guard.json
+            .bun-version
+          sparse-checkout-cone-mode: false
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: .bun-version
+      - name: Scan the text
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SAFETY_GUARD_WORDS: ${{ secrets.SAFETY_GUARD_WORDS }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: bun scripts/text-guard.ts --event "$EVENT_NAME" --payload "$GITHUB_EVENT_PATH" --apply
+
+  pulls:
+    if: >-
+      (github.event_name == 'pull_request' || github.event_name == 'pull_request_review' || github.event_name == 'pull_request_review_comment')
+      && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: write # replace a body or review summary, delete a review comment
+    steps: *scan
+
+  pulls-from-forks:
+    if: >-
+      (github.event_name == 'pull_request' || github.event_name == 'pull_request_review' || github.event_name == 'pull_request_review_comment')
+      && github.event.pull_request.head.repo.full_name != github.repository
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+          sparse-checkout: |
+            scripts
+            .safety-guard.json
+            .bun-version
+          sparse-checkout-cone-mode: false
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: .bun-version
+      - name: Record the item for the follow-up check
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+        run: bun scripts/text-guard.ts --event "$EVENT_NAME" --payload "$GITHUB_EVENT_PATH" --write-ref "$RUNNER_TEMP/text-guard-ref.json"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: text-guard-ref
+          path: ${{ runner.temp }}/text-guard-ref.json
+          if-no-files-found: ignore
+          retention-days: 1
+
+  discussions:
+    if: github.event_name == 'discussion' || github.event_name == 'discussion_comment'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      discussions: write # replace a discussion body, delete a discussion comment
+    steps: *scan

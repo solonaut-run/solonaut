@@ -33,6 +33,9 @@ issue labelled `type:epic`, and are split into issues when their stage starts.
   configured.
 - **Nothing private.** Never commit secrets, tokens, personal paths, personal e-mail addresses,
   real transcripts or code you don't have the right to publish. The safety guard checks this.
+- **Screenshots only from the dev window or test fixtures with sample data.** Never capture a
+  real session, a terminal or the desktop: they show names, paths and windows you didn't mean
+  to publish. CI reads the text in images with OCR and fails on a finding.
 
 ## Setup
 
@@ -78,6 +81,11 @@ literals and denylisted words, in files and in commit metadata. Public rules liv
 (git-ignored), as `{"words": [...]}` or sha256 `hashedWords`; they are matched but never
 printed. If a line is a false positive, add the marker `safety-guard: allow` to it with a short
 reason.
+
+Two more workflows use the same scanner. `image-guard` reads the text in the PNG, JPEG, GIF and
+WebP images a pull request adds or changes (`bun scripts/image-guard.ts FILE...` runs it locally
+with tesseract installed). `text-guard` scans issue, pull request and discussion text and
+comments; it fails on a finding and never changes text written by outside contributors.
 
 ## Commit messages
 

@@ -51,6 +51,9 @@ const EMAIL = /[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}
 const HOME = /(?:\/Users\/|\/home\/|[A-Za-z]:\\\\?Users\\\\?)([A-Za-z0-9._-]+)/g;
 const IPV4 = /(?<![\d.])(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})(?![\d.]*\d)/g;
 
+/** A base64 or hex run long enough to be data, not words. */
+const BLOB = /[A-Za-z0-9+/=_-]{120,}/g;
+
 const sha256 = (s: string) => createHash("sha256").update(s).digest("hex");
 
 export function glob(pattern: string, value: string): boolean {
@@ -103,10 +106,10 @@ export function scanText(text: string, where: string, rules: Rules): Finding[] {
       if (parts.some((n) => n > 255) || isNonPublicIp(parts) || rules.allowIps.includes(m[0])) continue;
       add("public-ip", redact(m[0]));
     }
-    // Long lines (inlined fonts, base64) are not prose: skip the word check there.
-    if (line.length > 2000) return;
+    // Inlined fonts and images (base64 runs) are not prose: drop them before the word check.
+    // The rest of a long line still counts, so text in a one-line SVG is checked like any other.
+    let prose = line.length > 2000 ? line.replace(BLOB, " ") : line;
     // Allowed e-mail addresses are public on purpose: their words don't count as denied words.
-    let prose = line;
     for (const m of line.matchAll(EMAIL)) if (rules.allowEmails.some((p) => glob(p, m[0]))) prose = prose.replace(m[0], " ");
     for (const token of new Set(prose.toLowerCase().split(/[^a-z0-9]+/))) {
       if (!token) continue;

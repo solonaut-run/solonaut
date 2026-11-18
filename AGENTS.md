@@ -14,7 +14,15 @@ stays in the history forever, including commit messages, author names and branch
   repos, the maintainer's own setup. Say "the maintainer", never a name. If in doubt, leave it
   out and ask.
 - Real transcripts, session logs or screenshots of real sessions. Fixtures are synthetic.
+- **Screenshots and recordings come only from the dev window or from test fixtures with sample
+  data**, never from a real session, a terminal or the desktop. They show names, paths and
+  windows you didn't mean to publish. CI reads the text in every image it is given (OCR) and
+  fails on a finding.
 - Generated output (`dist/`, build artifacts) and `node_modules/`.
+
+Text written on GitHub (issues, pull requests, reviews, comments, discussions) is public too and
+is scanned by the same guard: a finding by the maintainer's account or a bot is deleted or
+redacted, and the run fails.
 
 `bun run check` runs the safety guard; `bun run setup` installs it as a pre-push hook. Private
 words live only in the git-ignored `.safety-guard.local.json` or the `SAFETY_GUARD_WORDS`
